@@ -5,9 +5,9 @@
 - Official project: <https://github.com/ZHKKKe/PPM>
 - Official download: Google Drive file `1JUx-EPoV9QAhQgmW0AyOen-xKQUzZia-`
 - Retrieved: 2026-11-21
-- Archive observed: approximately 262 MB; 100 JPEG images and 100 PNG alpha mattes
+- Archive observed: approximately 262 MB; 100 JPEG images and 100 JPEG alpha mattes (the actual files in this release)
 - Terms stated by the publisher: source photographs come from Flickr under Creative Commons licenses allowing commercial use and modification; annotated alpha mattes are CC BY-NC-SA 4.0.
-- Redistribution decision: no PPM image, matte, derived crop, or model trained on PPM is committed. Only aggregate metrics are published.
+- Redistribution decision: no PPM image, matte, derived crop, or model trained on PPM is committed. Aggregate and per-image numeric metrics are published.
 
 PPM-100 is an evaluation benchmark and has no official train/test subdivision. Before tuning, this project froze a SHA-256 filename partition: 19 validation foregrounds and 81 test foregrounds. Subject IDs are not supplied, so unique-subject count and person-disjointness cannot be verified. The models are trained only on the procedural fixture, eliminating train/test foreground leakage. Natural PPM backgrounds are retained; no recompositing occurs.
 
