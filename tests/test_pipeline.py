@@ -1,10 +1,20 @@
+import numpy as np
 import torch
 from PIL import Image
 
-from portrait_mask_refinement.data import DataConfig, PortraitCompositeDataset, split_identities
-from portrait_mask_refinement.metrics import alpha_errors, boundary_band
-from portrait_mask_refinement.model import SmallUNet
+from portrait_mask_refinement.constraint import constrain_alpha, editable_region
+from portrait_mask_refinement.data import (
+    DataConfig,
+    PortraitCompositeDataset,
+    split_identities,
+)
 from portrait_mask_refinement.infer import run_inference
+from portrait_mask_refinement.metrics import (
+    alpha_errors,
+    boundary_band,
+    diagnostic_errors,
+)
+from portrait_mask_refinement.model import SmallUNet
 
 
 def test_identity_splits_are_disjoint_and_complete():
@@ -60,3 +70,50 @@ def test_inference_uses_only_photo_and_mask(tmp_path):
     run_inference(checkpoint, image_path, mask_path, alpha_path, comparison_path, "cpu")
     assert Image.open(alpha_path).size == (resolution, resolution)
     assert comparison_path.exists()
+
+
+def test_constraint_preserves_every_pixel_outside_editable_band():
+    rough = torch.zeros(1, 1, 32, 32)
+    rough[:, :, 8:24, 8:24] = 1
+    prediction = torch.rand_like(rough)
+    band = editable_region(rough, width=2)
+    constrained = constrain_alpha(prediction, rough, width=2)
+    assert torch.equal(constrained[band == 0], rough[band == 0])
+    assert torch.equal(constrained[band == 1], prediction[band == 1])
+
+
+def test_diagnostics_detect_unconstrained_interior_damage():
+    target = torch.zeros(1, 1, 32, 32)
+    target[:, :, 8:24, 8:24] = 1
+    rough = target.clone()
+    damaged = torch.full_like(target, 0.5)
+    metrics = diagnostic_errors(damaged, rough, target, width=2)
+    assert metrics["correct_fg_damage_rate"].item() == 1
+    assert metrics["correct_bg_damage_rate"].item() == 1
+
+
+def test_constrained_inference_preserves_dimensions_and_outside_band(tmp_path):
+    resolution = 32
+    image_path = tmp_path / "photo.png"
+    mask_path = tmp_path / "mask.png"
+    alpha_path = tmp_path / "alpha.png"
+    comparison_path = tmp_path / "comparison.png"
+    image = torch.randint(0, 255, (32, 48, 3), dtype=torch.uint8).numpy()
+    mask = torch.zeros(32, 48, dtype=torch.uint8)
+    mask[7:27, 12:38] = 255
+    Image.fromarray(image).save(image_path)
+    Image.fromarray(mask.numpy()).save(mask_path)
+    model = SmallUNet(4, base_channels=8)
+    checkpoint = tmp_path / "constrained.pt"
+    torch.save({
+        "model_state": model.state_dict(),
+        "input_mode": "rgb-mask",
+        "data_config": {"resolution": resolution},
+        "train_config": {"base_channels": 8, "constrained": True, "editable_width": 2},
+    }, checkpoint)
+    metadata = run_inference(checkpoint, image_path, mask_path, alpha_path, comparison_path, "cpu")
+    output = torch.from_numpy(np.asarray(Image.open(alpha_path), dtype="uint8").copy())
+    original = mask
+    band = editable_region((original.float() / 255)[None, None], 2)[0, 0].bool()
+    assert metadata["output_size"] == [48, 32]
+    assert torch.equal(output[~band], original[~band])

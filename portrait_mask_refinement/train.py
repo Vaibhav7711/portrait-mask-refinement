@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
+from .constraint import constrain_alpha
 from .data import DataConfig, PortraitCompositeDataset
 from .metrics import alpha_errors, boundary_weighted_loss
 from .model import SmallUNet
@@ -23,18 +24,33 @@ class TrainConfig:
     seed: int = 17
     device: str = "auto"
     num_workers: int = 0
+    constrained: bool = False
+    editable_width: int = 5
+
+
+def _predict(
+    model: torch.nn.Module,
+    image: torch.Tensor,
+    rough: torch.Tensor,
+    input_mode: str,
+    constrained: bool,
+    editable_width: int,
+) -> torch.Tensor:
+    model_input = rough if input_mode == "mask" else torch.cat([image, rough], dim=1)
+    prediction = model(model_input)
+    return constrain_alpha(prediction, rough, editable_width) if constrained else prediction
 
 
 @torch.no_grad()
-def validate(model: torch.nn.Module, loader: DataLoader, device: torch.device, input_mode: str, width: int) -> dict[str, float]:
+def validate(model: torch.nn.Module, loader: DataLoader, device: torch.device, input_mode: str, config: TrainConfig) -> dict[str, float]:
     model.eval()
     full_values, boundary_values = [], []
     for batch in loader:
         image = batch["image"].to(device)
         rough = batch["rough"].to(device)
         alpha = batch["alpha"].to(device)
-        model_input = rough if input_mode == "mask" else torch.cat([image, rough], dim=1)
-        full, boundary = alpha_errors(model(model_input), alpha, width)
+        prediction = _predict(model, image, rough, input_mode, config.constrained, config.editable_width)
+        full, boundary = alpha_errors(prediction, alpha, config.boundary_width)
         full_values.extend(full.cpu().tolist())
         boundary_values.extend(boundary.cpu().tolist())
     return {"full_mae": sum(full_values) / len(full_values), "boundary_mae": sum(boundary_values) / len(boundary_values)}
@@ -60,7 +76,8 @@ def train_model(
     model = SmallUNet(1 if input_mode == "mask" else 4, train_config.base_channels).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=train_config.learning_rate, weight_decay=1e-4)
     best = float("inf")
-    checkpoint_path = output_dir / f"best-{input_mode}.pt"
+    suffix = "-constrained" if train_config.constrained else ""
+    checkpoint_path = output_dir / f"best-{input_mode}{suffix}.pt"
     history = []
     for epoch in range(train_config.epochs):
         train_set.set_epoch(epoch)
@@ -70,14 +87,13 @@ def train_model(
             image = batch["image"].to(device)
             rough = batch["rough"].to(device)
             alpha = batch["alpha"].to(device)
-            model_input = rough if input_mode == "mask" else torch.cat([image, rough], dim=1)
             optimizer.zero_grad(set_to_none=True)
-            pred = model(model_input)
+            pred = _predict(model, image, rough, input_mode, train_config.constrained, train_config.editable_width)
             loss = boundary_weighted_loss(pred, alpha, train_config.boundary_width, train_config.boundary_weight)
             loss.backward()
             optimizer.step()
             running += loss.item() * image.shape[0]
-        metrics = validate(model, val_loader, device, input_mode, train_config.boundary_width)
+        metrics = validate(model, val_loader, device, input_mode, train_config)
         row = {"epoch": epoch + 1, "train_loss": running / len(train_set), **metrics}
         history.append(row)
         print(f"{input_mode} epoch {epoch + 1:02d}/{train_config.epochs}: loss={row['train_loss']:.4f} val_boundary={row['boundary_mae']:.4f}", flush=True)
@@ -90,7 +106,7 @@ def train_model(
                 "train_config": asdict(train_config),
                 "best_val_boundary_mae": best,
             }, checkpoint_path)
-    write_json(output_dir / f"history-{input_mode}.json", history)
+    write_json(output_dir / f"history-{input_mode}{suffix}.json", history)
     return checkpoint_path
 
 

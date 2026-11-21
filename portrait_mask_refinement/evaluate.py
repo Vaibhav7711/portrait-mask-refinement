@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFilter
-from torch.utils.data import DataLoader
 
 from .data import DataConfig, PortraitCompositeDataset
 from .metrics import alpha_errors
