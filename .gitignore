@@ -1,0 +1,28 @@
+# Data and generated artifacts
+data/
+datasets/
+cache/
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editors / OS / secrets
+.DS_Store
+.idea/
+.vscode/
+.env
+.env.*
+*.pem
+*.key
