@@ -1,0 +1,73 @@
+{
+  "resolution": 256,
+  "evaluation_half_width": 12,
+  "data_seed": 17,
+  "validation_foregrounds": 19,
+  "test_foregrounds": 81,
+  "test_conditions": 81,
+  "device": "mps",
+  "torch": "2.10.0",
+  "feather_validation": {
+    "0.5": 0.04247230458024301,
+    "1.0": 0.04274950470579298,
+    "2.0": 0.05904025819740797,
+    "3.0": 0.07879228027243364,
+    "5.0": 0.12127551397210673
+  },
+  "selected_radius": 0.5,
+  "checkpoint_sha256": {
+    "existing_procedural": "eadf2513e5e72228a86e4f4a3ce63b1d2f84bf2cd2733ed73e6488feb09de4ff"
+  },
+  "metrics": {
+    "rough": {
+      "full_mae": 0.010634176010541894,
+      "boundary_mae": 0.03535325876954529,
+      "fg_interior_mae": 0.0019713369541408607,
+      "bg_exterior_mae": 0.0009990939421280376,
+      "correct_fg_mae": 3.6444919461864345e-05,
+      "correct_bg_mae": 4.1804177557463126e-05,
+      "correct_fg_damage_rate": 0.0,
+      "correct_bg_damage_rate": 0.0,
+      "correct_pixel_change_rate": 0.0,
+      "conditions_with_correct_fg": 80,
+      "conditions_with_correct_bg": 81
+    },
+    "feathered": {
+      "full_mae": 0.009604113705364275,
+      "boundary_mae": 0.03151687825627533,
+      "fg_interior_mae": 0.0019715756274683053,
+      "bg_exterior_mae": 0.000999595462189271,
+      "correct_fg_mae": 0.00012448164023606267,
+      "correct_bg_mae": 6.679796565254879e-05,
+      "correct_fg_damage_rate": 0.0009026488177369174,
+      "correct_bg_damage_rate": 0.00025990771097928736,
+      "correct_pixel_change_rate": 0.0003895434096148726,
+      "conditions_with_correct_fg": 80,
+      "conditions_with_correct_bg": 81
+    },
+    "existing_procedural": {
+      "full_mae": 0.028721131114174188,
+      "boundary_mae": 0.103066322658165,
+      "fg_interior_mae": 0.003498631693423809,
+      "bg_exterior_mae": 0.0015249356838010915,
+      "correct_fg_mae": 0.0019917036691166957,
+      "correct_bg_mae": 0.0007215987849272208,
+      "correct_fg_damage_rate": 0.004339876190897485,
+      "correct_bg_damage_rate": 0.0012651225501659935,
+      "correct_pixel_change_rate": 0.0017549401750273565,
+      "conditions_with_correct_fg": 80,
+      "conditions_with_correct_bg": 81
+    }
+  },
+  "paired_foreground_intervals": {
+    "existing_procedural-minus-feathered": {
+      "mean": 0.07154944440188968,
+      "foregrounds": 81,
+      "bootstrap_95ci": [
+        0.06291602812994869,
+        0.0804567064264973
+      ],
+      "improved_foregrounds": 2
+    }
+  }
+}

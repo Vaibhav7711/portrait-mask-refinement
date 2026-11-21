@@ -9,7 +9,7 @@
 - Terms stated by the publisher: source photographs come from Flickr under Creative Commons licenses allowing commercial use and modification; annotated alpha mattes are CC BY-NC-SA 4.0.
 - Redistribution decision: no PPM image, matte, derived crop, or model trained on PPM is committed. Aggregate and per-image numeric metrics are published.
 
-PPM-100 is an evaluation benchmark and has no official train/test subdivision. Before tuning, this project froze a SHA-256 filename partition: 19 validation foregrounds and 81 test foregrounds. Subject IDs are not supplied, so unique-subject count and person-disjointness cannot be verified. The models are trained only on the procedural fixture, eliminating train/test foreground leakage. Natural PPM backgrounds are retained; no recompositing occurs.
+PPM-100 is an evaluation benchmark and has no official train/test subdivision. Before tuning, this project froze a SHA-256 filename partition: 19 validation foregrounds and 81 test foregrounds. Subject IDs are not supplied, so unique-subject count and person-disjointness cannot be verified. Phase-1 models trained only on the procedural fixture; the follow-up uses separately downloaded PhotoMatte85 foregrounds, with the overlap audit below. No PPM image is used for CNN training. Natural PPM backgrounds are retained; no recompositing occurs during evaluation.
 
 Exact setup:
 
@@ -47,3 +47,7 @@ The built-in fixture is generated entirely by repository code and is MIT-license
 ## P3M-10k alternative
 
 P3M-10k is an official MIT-agreement portrait matting dataset with 9,421 training images, P3M-500-P, and P3M-500-NP. Its official project is <https://github.com/JizhiziLi/P3M>. PPM-100 was selected here because its complete 100-image benchmark was publicly downloadable without approval and practical to evaluate locally. P3M-10k was not downloaded or measured.
+
+## PhotoMatte85 training pilot
+
+The follow-up uses the 85 RGBA foregrounds from the [official Background Matting V2 dataset page](https://grail.cs.washington.edu/projects/background-matting-v2/#/datasets). The page permits commercial and non-commercial dataset use; academic work must cite the paper. No commercial product is being deployed here. The 65/20 source-image split, file hashes, exact/perceptual overlap checks against all 100 PPM images, and remaining identity uncertainty are documented in [PHOTOGRAPHIC_STUDY.md](PHOTOGRAPHIC_STUDY.md) and [the published audit](../reports/photographic-study/data-audit.json). Dataset images, alpha mattes, photographic crops, and newly trained checkpoints remain outside Git. Numeric results and the paired-difference plot are published.

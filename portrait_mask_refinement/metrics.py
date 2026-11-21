@@ -4,12 +4,18 @@ import torch
 import torch.nn.functional as F
 
 
+def square_max_pool(value: torch.Tensor, width: int) -> torch.Tensor:
+    """Exactly the square max filter, factored into two cheaper 1D passes."""
+    kernel = width * 2 + 1
+    horizontal = F.max_pool2d(value, (1, kernel), stride=1, padding=(0, width))
+    return F.max_pool2d(horizontal, (kernel, 1), stride=1, padding=(width, 0))
+
+
 def boundary_band(alpha: torch.Tensor, width: int = 5) -> torch.Tensor:
     """Fixed-width band around the ground-truth 0.5 contour."""
     binary = (alpha >= 0.5).float()
-    kernel = width * 2 + 1
-    dilated = F.max_pool2d(binary, kernel, stride=1, padding=width)
-    eroded = 1 - F.max_pool2d(1 - binary, kernel, stride=1, padding=width)
+    dilated = square_max_pool(binary, width)
+    eroded = 1 - square_max_pool(1 - binary, width)
     return (dilated - eroded).clamp(0, 1)
 
 

@@ -1,0 +1,9 @@
+{
+  "source_images": 85,
+  "ppm_images_audited": 100,
+  "excluded": [],
+  "training_images": 65,
+  "validation_images": 20,
+  "identity_overlap": "Not established: neither source provides reliable person IDs; no face recognition performed.",
+  "audit_limit": "Exact file/canonical comparisons and 64-bit perceptual hashes of alpha-composited center crops, including mirrored PPM crops, cannot prove source disjointness under arbitrary edits."
+}

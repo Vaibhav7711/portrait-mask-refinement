@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import torch
-import torch.nn.functional as F
+
+from .metrics import square_max_pool
 
 
 def editable_region(rough: torch.Tensor, width: int) -> torch.Tensor:
@@ -13,9 +14,8 @@ def editable_region(rough: torch.Tensor, width: int) -> torch.Tensor:
     if width == 0:
         return torch.zeros_like(rough)
     binary = (rough >= 0.5).to(rough.dtype)
-    kernel = 2 * width + 1
-    dilated = F.max_pool2d(binary, kernel, stride=1, padding=width)
-    eroded = 1 - F.max_pool2d(1 - binary, kernel, stride=1, padding=width)
+    dilated = square_max_pool(binary, width)
+    eroded = 1 - square_max_pool(1 - binary, width)
     return (dilated - eroded).clamp(0, 1)
 
 

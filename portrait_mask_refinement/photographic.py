@@ -56,6 +56,7 @@ class PhotographicMatteDataset(Dataset):
         if not pairs:
             raise ValueError(f"No paired photographic samples found for split {split}")
         self.pairs = pairs
+        self._cached_pair = None
 
     @property
     def identities(self) -> list[str]:
@@ -64,11 +65,21 @@ class PhotographicMatteDataset(Dataset):
     def __len__(self) -> int:
         return len(self.pairs) * self.perturbations
 
-    def __getitem__(self, index: int) -> dict[str, torch.Tensor | str]:
-        image_path, matte_path = self.pairs[index // self.perturbations]
-        version = index % self.perturbations
+    def _load_pair(self, pair_index: int):
+        if self._cached_pair is not None and self._cached_pair[0] == pair_index:
+            return self._cached_pair[1]
+        image_path, matte_path = self.pairs[pair_index]
         with Image.open(image_path) as image, Image.open(matte_path) as matte:
-            rgb, alpha = _fit_pair(image, matte, self.resolution)
+            if image.size != matte.size:
+                raise ValueError("Photographic image and matte dimensions must match")
+            fitted = _fit_pair(image, matte, self.resolution)
+        self._cached_pair = (pair_index, fitted)
+        return fitted
+
+    def __getitem__(self, index: int) -> dict[str, torch.Tensor | str]:
+        image_path, _matte_path = self.pairs[index // self.perturbations]
+        version = index % self.perturbations
+        rgb, alpha = self._load_pair(index // self.perturbations)
         alpha_tensor = torch.from_numpy(alpha).float().unsqueeze(0)
         if self.roughs_dir:
             if image_path.stem not in self.rough_by_stem:
