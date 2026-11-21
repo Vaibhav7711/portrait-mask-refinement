@@ -23,6 +23,8 @@ P3M-10k was also investigated: its official 5.4 GB download is accessible, but i
 
 The existing 19-validation/81-test PPM split and original-resolution binary MODNet PNGs remain unchanged. SHA-256 manifests bind RGB, matte, and MODNet mask bytes. Main evaluation is 81 test foregrounds ×1 MODNet mask at 256×256. Secondary evaluation is the same 81 foregrounds ×3 pre-existing deterministic controlled corruptions (243 conditions). PPM validation selects only the Gaussian radius from `{0.5,1,2,3,5}` separately per mask condition.
 
+"Raw MODNet" here means the frozen **thresholded binary masks**, not MODNet's original soft alpha outputs. This experiment measures refinement of those supplied masks. MODNet is a fixed third-party model; this project cannot independently audit all of its pretraining source images or subject overlap.
+
 Boundary alpha MAE is primary. Full-image alpha MAE and damage to already-correct foreground/background interior pixels are secondary, with the original region definitions in [PROTOCOL.md](PROTOCOL.md). Empty correct-FG/BG regions are omitted from their respective per-image means and their valid sample counts are reported, rather than scored as zero. This differs from historical phase-1 damage-rate aggregation, but not from its full/boundary MAE.
 
 Report per-condition paired differences. Average errors across model seeds and repeated corruptions **within foreground** before bootstrapping 5,000 foreground resamples (seed 17). Intervals describe test-foreground uncertainty conditional on the trained seeds, not full retraining uncertainty or person-cluster uncertainty. Seed SD is reported separately. Seed-mean metrics are not ensemble-prediction metrics.

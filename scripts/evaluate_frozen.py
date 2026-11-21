@@ -20,24 +20,13 @@ from portrait_mask_refinement.constraint import constrain_alpha
 from portrait_mask_refinement.evaluate import feather
 from portrait_mask_refinement.metrics import boundary_band, diagnostic_errors
 from portrait_mask_refinement.photographic import PhotographicMatteDataset
+from portrait_mask_refinement.statistics import paired_interval
 from portrait_mask_refinement.train import load_model
 from portrait_mask_refinement.utils import select_device, write_json
 
 
 def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
-def paired_interval(values, seed=17):
-    """Input must contain one paired delta per foreground, not per corruption."""
-    values = np.asarray(values, dtype=np.float64)
-    if not len(values):
-        raise ValueError("Cannot bootstrap an empty comparison")
-    rng = np.random.default_rng(seed)
-    means = rng.choice(values, (5000, len(values)), replace=True).mean(1)
-    return {"mean": float(values.mean()), "foregrounds": len(values),
-            "bootstrap_95ci": np.quantile(means, [.025, .975]).tolist(),
-            "improved_foregrounds": int((values < 0).sum())}
 
 
 def write_csv(path, rows):

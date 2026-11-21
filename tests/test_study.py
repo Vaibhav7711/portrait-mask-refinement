@@ -7,8 +7,8 @@ import torch.nn.functional as F
 from PIL import Image
 
 from portrait_mask_refinement.metrics import square_max_pool
+from portrait_mask_refinement.statistics import paired_interval
 from portrait_mask_refinement.study import MatchedPortraitDataset
-from scripts.evaluate_frozen import paired_interval
 
 
 def test_paired_foreground_interval_is_deterministic():
