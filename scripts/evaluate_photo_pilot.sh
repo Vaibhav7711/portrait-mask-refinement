@@ -19,14 +19,17 @@ comparisons=(
   --compare photographic_seed_mean:feathered
   --compare photographic_modnet17:photographic17
 )
-for condition in modnet controlled; do
-  rough_args=()
-  if [ "$condition" = modnet ]; then
-    rough_args=(--roughs-dir outputs/modnet-roughs)
-  fi
+run_evaluation() {
   python3 -m scripts.evaluate_frozen \
     --images-dir data/ppm100/extracted/PPM-100/image \
     --mattes-dir data/ppm100/extracted/PPM-100/matte \
-    "${rough_args[@]}" "${checkpoints[@]}" "${comparisons[@]}" \
+    "$@" "${checkpoints[@]}" "${comparisons[@]}" \
     --device mps --output-dir "reports/photographic-study/$condition-256"
+}
+for condition in modnet controlled; do
+  if [ "$condition" = modnet ]; then
+    run_evaluation --roughs-dir outputs/modnet-roughs
+  else
+    run_evaluation
+  fi
 done

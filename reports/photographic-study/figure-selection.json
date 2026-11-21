@@ -1,0 +1,28 @@
+[
+  {
+    "case": "representative-improvement",
+    "identity": "19551619800_2c7ac67584_o",
+    "crop_box_at_256": [
+      94,
+      80,
+      190,
+      176
+    ],
+    "photo_minus_procedural_seed_mean": -0.016389086842536926,
+    "photo_minus_feather_seed_mean": 0.11594775132834911,
+    "selection": "median within improved-vs-procedural or worse-than-feather subset; images stay local"
+  },
+  {
+    "case": "representative-failure",
+    "identity": "13179159164_1a4ae8d085_o",
+    "crop_box_at_256": [
+      38,
+      32,
+      134,
+      128
+    ],
+    "photo_minus_procedural_seed_mean": 0.0423008178671201,
+    "photo_minus_feather_seed_mean": 0.08027338981628418,
+    "selection": "median within improved-vs-procedural or worse-than-feather subset; images stay local"
+  }
+]

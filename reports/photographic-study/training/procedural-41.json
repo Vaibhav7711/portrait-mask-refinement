@@ -1,0 +1,73 @@
+{
+  "arguments": {
+    "manifest": "reports/photographic-study/photo-split.json",
+    "cache_dir": "data/photomatte85/cache",
+    "output_dir": "outputs/photo-study/procedural-41",
+    "domain": "procedural",
+    "seed": 41,
+    "device": "mps",
+    "roughs_dir": null
+  },
+  "config": {
+    "epochs": 6,
+    "batch_size": 4,
+    "learning_rate": 0.002,
+    "base_channels": 8,
+    "boundary_width": 12,
+    "boundary_weight": 4.0,
+    "seed": 41,
+    "device": "mps",
+    "num_workers": 0,
+    "constrained": true,
+    "editable_width": 4
+  },
+  "train_foregrounds": 65,
+  "val_foregrounds": 20,
+  "steps": 294,
+  "seconds": 70.18301491701277,
+  "torch": "2.10.0",
+  "history": [
+    {
+      "epoch": 1,
+      "steps": 49,
+      "train_loss": 0.5751709644611065,
+      "full_mae": 0.030634951878649494,
+      "boundary_mae": 0.10506834539895256
+    },
+    {
+      "epoch": 2,
+      "steps": 98,
+      "train_loss": 0.42760999966890384,
+      "full_mae": 0.0315396595823889,
+      "boundary_mae": 0.10916075672333439
+    },
+    {
+      "epoch": 3,
+      "steps": 147,
+      "train_loss": 0.3853465226980356,
+      "full_mae": 0.028448505916943152,
+      "boundary_mae": 0.09746251801649729
+    },
+    {
+      "epoch": 4,
+      "steps": 196,
+      "train_loss": 0.34748498980815595,
+      "full_mae": 0.027365558214175204,
+      "boundary_mae": 0.09370227920201918
+    },
+    {
+      "epoch": 5,
+      "steps": 245,
+      "train_loss": 0.3260644168425829,
+      "full_mae": 0.028576255380176007,
+      "boundary_mae": 0.09919563792645932
+    },
+    {
+      "epoch": 6,
+      "steps": 294,
+      "train_loss": 0.307269549369812,
+      "full_mae": 0.027720454381778836,
+      "boundary_mae": 0.09560696679788332
+    }
+  ]
+}
