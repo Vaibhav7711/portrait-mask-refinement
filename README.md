@@ -4,6 +4,12 @@ Boundary-constrained portrait alpha refinement for the Aftershoot ML internship:
 
 ![Application demo: RGB, rough mask, equal exposure edits, and constrained alpha](docs/assets/application-comparison.png)
 
+Procedural fixture (not a photograph): RGB input and supplied rough mask; rough-mask, Gaussian-feathered, and constrained RGB U-Net exposure edits, all at +0.75 stops. The CNN checkpoint was trained only on procedural images.
+
+![Enlarged procedural hair crops, including a failure](docs/assets/sharing-crops.png)
+
+Identical 96×96 hair/shoulder crops enlarged 2×: input, rough-mask edit, Gaussian feathering, and constrained RGB U-Net. Top: median fixture condition; bottom: largest constrained-CNN boundary regression versus feathering. Both use +0.75 stops; this is a procedural illustration, not photographic evidence.
+
 ## Main result
 
 The constraint solves the original safety failure, but it does **not** beat the simplest baseline on the main photographic benchmark. On 81 held-out PPM-100 foregrounds × 3 controlled corruptions (243 conditions, 256×256), the best seed reduced damage to already-correct foreground/background pixels from **81.1% / 99.99%** for the unconstrained CNN to **1.48% / 0.08%**. Its boundary MAE was 0.1392; validation-tuned Gaussian feathering won at 0.1368.
@@ -44,7 +50,7 @@ The ground-truth boundary used for evaluation remains separate from this inferen
 
 ### Practical pretrained-mask condition
 
-The official MODNet photographic checkpoint was thresholded to produce one rough mask for each PPM image. On 81 test images, the MODNet rough masks scored 0.0606 boundary MAE and Gaussian feathering improved this to **0.0496**. Every CNN variant made these already-strong masks worse. This condition is reported separately from the controlled corruptions.
+The official MODNet photographic checkpoint was thresholded to produce one rough mask for each PPM image. In this **64×64 pilot** (3 px evaluation band, 2 px trained editable band), on 81 test images, the MODNet rough masks scored 0.0606 boundary MAE and Gaussian feathering improved this to **0.0496**. Every CNN variant made these already-strong masks worse. This condition is reported separately from the 256×256 controlled corruptions; the numbers are not directly comparable across resolutions. **Gaussian feathering won both reported photographic benchmark conditions.** All CNNs in this report trained on procedural data; PPM-100 supplied photographic evaluation images only.
 
 ### Latency
 
@@ -113,7 +119,7 @@ pmr evaluate-constrained --dataset photographic \
   --output-dir outputs/256/eval-ppm100
 ```
 
-Evaluation writes `summary.json`, `per-image.csv`, a typical comparison, and the largest full-image regression. See [the complete protocol](docs/PROTOCOL.md), [dataset provenance](docs/DATASETS.md), and [experiment log](docs/EXPERIMENTS.md).
+Evaluation writes `summary.json`, `per-image.csv`, a typical comparison, and the largest full-image regression. See [the complete protocol](docs/PROTOCOL.md), [dataset provenance](docs/DATASETS.md), [experiment log](docs/EXPERIMENTS.md), and [published measurement files](reports/phase1/).
 
 ## Failure modes
 

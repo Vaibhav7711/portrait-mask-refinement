@@ -25,6 +25,7 @@ The evaluation boundary and editable region are deliberately distinct. Every met
 - Validation choices: Gaussian radius and editable width.
 - Main resolution: 256×256; ground-truth evaluation half-width 12 px; editable half-width candidates `{4, 8, 12, 20, 32}`.
 - Main learned comparison seeds: 17, 23, 41. Data split and corruptions stay fixed at seed 17.
+- The historical MODNet-mask result is a separate 64×64 pilot with evaluation half-width 3 and trained editable half-width 2; it is not a 256×256 result.
 - Uncertainty: 2,000 bootstrap resamples of foreground-level means. CSV rows retain paired per-condition results.
 
 ## Methods
@@ -46,3 +47,4 @@ Model loading and output disk write are excluded. Image decode, preprocessing, n
 - The alpha PNG has the original photo dimensions.
 - Alpha is an 8-bit soft matte.
 - Outside the scaled editable band, alpha bytes equal the supplied rough-mask bytes.
+- Image and mask dimensions must match; mismatches are rejected rather than silently resized. Width zero copies the entire supplied mask.

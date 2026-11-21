@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import torch
 from PIL import Image
 
@@ -92,15 +93,15 @@ def test_diagnostics_detect_unconstrained_interior_damage():
     assert metrics["correct_bg_damage_rate"].item() == 1
 
 
-def test_constrained_inference_preserves_dimensions_and_outside_band(tmp_path):
+@pytest.mark.parametrize("width", [0, 2])
+def test_constrained_inference_preserves_dimensions_and_outside_band(tmp_path, width):
     resolution = 32
     image_path = tmp_path / "photo.png"
     mask_path = tmp_path / "mask.png"
     alpha_path = tmp_path / "alpha.png"
     comparison_path = tmp_path / "comparison.png"
     image = torch.randint(0, 255, (32, 48, 3), dtype=torch.uint8).numpy()
-    mask = torch.zeros(32, 48, dtype=torch.uint8)
-    mask[7:27, 12:38] = 255
+    mask = torch.arange(32 * 48).reshape(32, 48).remainder(256).to(torch.uint8)
     Image.fromarray(image).save(image_path)
     Image.fromarray(mask.numpy()).save(mask_path)
     model = SmallUNet(4, base_channels=8)
@@ -109,11 +110,15 @@ def test_constrained_inference_preserves_dimensions_and_outside_band(tmp_path):
         "model_state": model.state_dict(),
         "input_mode": "rgb-mask",
         "data_config": {"resolution": resolution},
-        "train_config": {"base_channels": 8, "constrained": True, "editable_width": 2},
+        "train_config": {"base_channels": 8, "constrained": True, "editable_width": width},
     }, checkpoint)
     metadata = run_inference(checkpoint, image_path, mask_path, alpha_path, comparison_path, "cpu")
     output = torch.from_numpy(np.asarray(Image.open(alpha_path), dtype="uint8").copy())
     original = mask
-    band = editable_region((original.float() / 255)[None, None], 2)[0, 0].bool()
+    band = editable_region((original.float() / 255)[None, None], width)[0, 0].bool()
     assert metadata["output_size"] == [48, 32]
     assert torch.equal(output[~band], original[~band])
+    assert metadata["editable_width_output_pixels"] == width
+    Image.new("L", (12, 12)).save(mask_path)
+    with pytest.raises(ValueError, match="dimensions must match"):
+        run_inference(checkpoint, image_path, mask_path, alpha_path, comparison_path, "cpu")

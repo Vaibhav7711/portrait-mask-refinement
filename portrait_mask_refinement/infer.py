@@ -32,7 +32,7 @@ def run_inference(
     with Image.open(mask_path) as im:
         original_mask_image = im.convert("L")
         if original_mask_image.size != original_size:
-            original_mask_image = original_mask_image.resize(original_size, Image.Resampling.NEAREST)
+            raise ValueError("Image and supplied mask dimensions must match")
         original_mask_np = np.asarray(original_mask_image, dtype=np.float32) / 255
         mask_np = np.asarray(original_mask_image.resize((resolution, resolution), Image.Resampling.NEAREST), dtype=np.float32) / 255
     image = torch.from_numpy(image_np).permute(2, 0, 1).float()[None].to(device)
@@ -47,7 +47,9 @@ def run_inference(
     rough_original_tensor = torch.from_numpy(original_mask_np).float()[None, None]
     use_constraint = editable_width is not None or trained_constrained
     if use_constraint:
-        scaled_width = max(1, round(model_width * min(original_size) / resolution))
+        if model_width < 0:
+            raise ValueError("editable_width must be nonnegative")
+        scaled_width = 0 if model_width == 0 else max(1, round(model_width * min(original_size) / resolution))
         refined_original = constrain_alpha(raw_original_tensor, rough_original_tensor, scaled_width)
     else:
         scaled_width = 0
@@ -68,5 +70,5 @@ def run_inference(
 
 
 def _alpha_pil(alpha: torch.Tensor) -> Image.Image:
-    arr = (alpha[0, 0].detach().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8)
+    arr = np.rint(alpha[0, 0].detach().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8)
     return Image.fromarray(arr, "L")
