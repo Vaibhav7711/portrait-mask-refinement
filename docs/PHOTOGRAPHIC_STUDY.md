@@ -4,11 +4,11 @@
 
 Does replacing procedural foregrounds with photographic foregrounds help the same constrained U-Net, and does it beat Gaussian feathering on the frozen PPM-100 MODNet masks? These are separate questions. This is a **PhotoMatte85 pilot**, not training on a large portrait corpus.
 
-The [official Background Matting V2 dataset page](https://grail.cs.washington.edu/projects/background-matting-v2/#/datasets) permits commercial and non-commercial dataset use and requests a paper citation for academic work (and a survey for use in commercial products). This repository is a research/portfolio experiment, not a commercial deployment. PhotoMatte85 supplies 85 studio portrait foregrounds and extracted ground-truth alpha mattes. Its larger 13K training collection is not released. Download: official Google Drive ID `1KpHKYW986Dax9-ZIM7I-HyBoWVcLPuaQ` (413 MB archive). Data and trained weights remain ignored. No portrait assets are redistributed in Git.
+The [official Background Matting V2 dataset page](https://grail.cs.washington.edu/projects/background-matting-v2/#/datasets) permits commercial and non-commercial dataset use and requests a paper citation for academic work (and a survey for use in commercial products). This repository is a reproducible research implementation, not a commercial deployment. PhotoMatte85 supplies 85 studio portrait foregrounds and extracted ground-truth alpha mattes. Its larger 13K training collection is not released. Download: official Google Drive ID `1KpHKYW986Dax9-ZIM7I-HyBoWVcLPuaQ` (413 MB archive). Data and trained weights remain ignored. No portrait assets are redistributed in Git.
 
 Citation: Shanchuan Lin, Andrey Ryabtsev, Soumyadip Sengupta, Brian Curless, Steve Seitz, and Ira Kemelmacher-Shlizerman. *Real-Time High-Resolution Background Matting*. CVPR 2021. [Paper](https://arxiv.org/abs/2012.07810).
 
-P3M-10k was also investigated: its official 5.4 GB download is accessible, but its release includes an indemnification agreement. The user declined that agreement. It was **not downloaded or used**; PhotoMatte85 was chosen instead.
+P3M-10k was also considered, but its release requires an additional indemnification agreement. It was **not downloaded or used**; PhotoMatte85 was selected for this study instead.
 
 - Split source images before compositing; 20 hash-selected photographic validation images, remaining eligible images for training. The committed manifest, not a regenerated random split, is authoritative.
 - Check all 85 sources against all 100 PPM images using exact file hashes and exact/perceptual hashes of foreground-on-gray composites, with mirrored comparisons. Conservatively exclude a nearest 64-bit perceptual distance ≤8. Review the ten closest pairs visually. This detects some source duplicates, not arbitrary edits or subject overlap.
@@ -25,7 +25,7 @@ The existing 19-validation/81-test PPM split and original-resolution binary MODN
 
 "Raw MODNet" here means the frozen **thresholded binary masks**, not MODNet's original soft alpha outputs. This experiment measures refinement of those supplied masks. MODNet is a fixed third-party model; this project cannot independently audit all of its pretraining source images or subject overlap.
 
-Boundary alpha MAE is primary. Full-image alpha MAE and damage to already-correct foreground/background interior pixels are secondary, with the original region definitions in [PROTOCOL.md](PROTOCOL.md). Empty correct-FG/BG regions are omitted from their respective per-image means and their valid sample counts are reported, rather than scored as zero. This differs from historical phase-1 damage-rate aggregation, but not from its full/boundary MAE.
+Boundary alpha MAE is primary. Full-image alpha MAE and damage to already-correct foreground/background interior pixels are secondary, with the original region definitions in [PROTOCOL.md](PROTOCOL.md). Empty correct-FG/BG regions are omitted from their respective per-image means and their valid sample counts are reported, rather than scored as zero. This differs from the initial benchmark's damage-rate aggregation, but not from its full/boundary MAE.
 
 Report per-condition paired differences. Average errors across model seeds and repeated corruptions **within foreground** before bootstrapping 5,000 foreground resamples (seed 17). Intervals describe test-foreground uncertainty conditional on the trained seeds, not full retraining uncertainty or person-cluster uncertainty. Seed SD is reported separately. Seed-mean metrics are not ensemble-prediction metrics.
 
@@ -85,7 +85,7 @@ The publication script prepares measurements, run histories, provenance hashes, 
 - All 85 sources audited against all 100 PPM images: zero exact file/canonical matches, zero perceptual candidates at distance ≤8, minimum nearest distance 14. Ten nearest pairs visually reviewed; their source compositions differ. This is evidence against duplicates under the specified checks, **not proof of person-disjointness**.
 - Actual split: **65 training / 20 validation source images**, 195/60 fixed composites. Six epochs expose 1,170 training examples and make **294 updates per run**, including each partial last batch of three.
 - Main run seeds: 17, 23, 41 for both domains. Optional MODNet-mask training: seed 17 only.
-- Training environment: Python 3.12.1, torch 2.10.0, NumPy 2.4.2, Pillow 12.1.1. Fresh-install demo compatibility was checked separately; see [sharing verification](SHARING_VERIFICATION.md).
+- Training environment: Python 3.12.1, torch 2.10.0, NumPy 2.4.2, Pillow 12.1.1. Fresh-install demo compatibility was checked separately; see [reproducibility verification](VERIFICATION.md).
 
 ## Main measured result: real MODNet masks
 
@@ -145,6 +145,6 @@ These are three training seeds, not 243 independent training runs. [Seed measure
 
 ## Verification and qualitative cases
 
-Both pytest entry points pass all 16 tests, including deterministic foreground bootstrap, matched corruption RNG, inference preservation, and exact separable morphology. Ruff and compileall pass. A clean follow-up checkout also passes 16 tests and the documented demo. The main frozen manifest and all three reference methods match the pre-training evaluation exactly; the secondary reference full/boundary metrics reproduce the historical benchmark within floating-point tolerance.
+Both pytest entry points pass all 16 tests, including deterministic foreground bootstrap, matched corruption RNG, inference preservation, and exact separable morphology. Ruff and compileall pass. A clean checkout also passes 16 tests and the documented demo. The main frozen manifest and all three reference methods match the pre-training evaluation exactly; the secondary reference full/boundary metrics reproduce the historical benchmark within floating-point tolerance.
 
 The locally generated improvement is PPM `19551619800_2c7ac67584_o`, a shoulder crop (box `[94,80,190,176]` at 256×256). Its three-seed photographic-minus-procedural boundary difference is −0.016389. The failure is `13179159164_1a4ae8d085_o`, a hair crop (`[38,32,134,128]`), with difference +0.042301 versus procedural and +0.080273 versus feathering. Displayed seed-17 comparisons have the same direction. Both use the same 96×96 crop scale and +0.75-stop exposure; the improved case still loses to feathering. [Selection metadata](../reports/photographic-study/figure-selection.json) records the non-cherry-picked subset-median rule. Run the publication command above to view the photographs locally; only numeric visualizations are published.

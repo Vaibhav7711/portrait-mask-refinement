@@ -12,7 +12,7 @@ All runs below were performed on 2026-11-21 with PyTorch 2.10.0 on Apple Silicon
 | R5: 256 px band sweep | Increase resolution and test widths `{4,8,12,20,32}` on PPM validation. | Width 4 covered 65.5% of errors and scored 0.1341 validation boundary MAE; width 32 covered 98.9% but scored 0.2113. | Freeze editable width 4 and ground-truth evaluation width 12. |
 | R6: 256 px main test | Compare all six methods on 81 foregrounds × 3 corruptions. | Feather won boundary MAE at 0.1368. Best constrained RGB scored 0.0386 full / 0.1392 boundary, with 1.48%/0.08% correct FG/BG damage. Unconstrained RGB scored 0.2733/0.2496 and 81.1%/~100% damage. | Evidence supports safety and RGB benefit over constrained mask-only, but not superiority over feathering. |
 | R7: seed stability | Train constrained RGB with seeds 17, 23, 41 on fixed data. | Boundary MAE `0.1431 ± 0.0034`; full MAE `0.0397 ± 0.0010`. | Report three seeds; avoid a single-seed claim. |
-| R8: latency | Include decode, preprocessing, model, constraint, and resize; 10 warmups + 50 runs. | 256 px: MPS 20.0/25.7 ms p50/p95; CPU 95.0/96.0 ms. | Application path is interactive on available hardware; CUDA remains pending. |
+| R8: latency | Include decode, preprocessing, model, constraint, and resize; 10 warmups + 50 runs. | 256 px: MPS 20.0/25.7 ms p50/p95; CPU 95.0/96.0 ms. | The inference path is interactive on available hardware; CUDA remains pending. |
 
 Metric pairs in R0–R6 are full-image MAE / boundary MAE unless otherwise stated. R4 is at 64×64, not 256×256. Aggregate JSON and per-image CSVs are published in [reports/phase1](../reports/phase1/); downloaded data and external weights remain ignored. Hardware: Apple M1, PyTorch 2.10.0, Python 3.12.1.
 

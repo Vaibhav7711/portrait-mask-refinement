@@ -1,8 +1,10 @@
 # Portrait Mask Refinement
 
-Boundary-constrained portrait alpha refinement for the Aftershoot ML internship: a small CNN may edit hair and shoulder boundaries, but the supplied rough mask is copied **exactly** everywhere outside an erosion–dilation band.
+Boundary-constrained alpha-matte refinement for portrait editing. Given an RGB portrait and a rough foreground mask, a compact U-Net predicts hair and shoulder corrections while a hard constraint copies the supplied mask **exactly** everywhere outside an erosion–dilation band.
 
-![Application demo: RGB, rough mask, equal exposure edits, and constrained alpha](docs/assets/application-comparison.png)
+The repository includes a runnable inference CLI, deterministic training pipelines, frozen evaluation splits, per-image measurements, and controlled comparisons with raw masks and Gaussian feathering. Its emphasis is reproducible model behavior rather than a showcase-only result.
+
+![Inference comparison: RGB, rough mask, equal exposure edits, and constrained alpha](docs/assets/application-comparison.png)
 
 Procedural fixture (not a photograph): RGB input and supplied rough mask; rough-mask, Gaussian-feathered, and constrained RGB U-Net exposure edits, all at +0.75 stops. The CNN checkpoint was trained only on procedural images.
 
@@ -10,7 +12,7 @@ Procedural fixture (not a photograph): RGB input and supplied rough mask; rough-
 
 Identical 96×96 hair/shoulder crops enlarged 2×: input, rough-mask edit, Gaussian feathering, and constrained RGB U-Net. Top: median fixture condition; bottom: largest constrained-CNN boundary regression versus feathering. Both use +0.75 stops; this is a procedural illustration, not photographic evidence.
 
-## Photographic-training follow-up: a small, controlled pilot
+## Photographic-training study
 
 **Switching to photographic foregrounds alone did not reliably help on real MODNet masks, and it did not beat feathering.** Using MODNet masks during photographic training helped the one-seed mask-matched variant substantially, but feathering still won.
 
@@ -37,7 +39,7 @@ See the [complete photographic study and commands](docs/PHOTOGRAPHIC_STUDY.md), 
 
 **Secondary evaluation, controlled corruptions:** on the same 81 foregrounds ×3 corruptions (**243 conditions**), photographic training improved boundary MAE from **0.14203 to 0.13378** (three-seed means; paired difference −0.00825, 95% CI [−0.01309, −0.00353]). Feathering scored 0.13680: the photographic CNN had a lower point estimate, but its difference versus feathering, −0.00302 [−0.01020, +0.00396], was inconclusive. Thus photographic training helped under controlled corruption, but not reliably on the main real-MODNet-mask condition. Across-seed SDs and all secondary metrics are in the complete study.
 
-## Historical procedural-training result
+## Controlled-corruption benchmark
 
 The constraint solves the original safety failure, but it does **not** beat the simplest baseline on the main photographic benchmark. On 81 held-out PPM-100 foregrounds × 3 controlled corruptions (243 conditions, 256×256), the best seed reduced damage to already-correct foreground/background pixels from **81.1% / 99.99%** for the unconstrained CNN to **1.48% / 0.08%**. Its boundary MAE was 0.1392; validation-tuned Gaussian feathering won at 0.1368.
 
@@ -50,11 +52,11 @@ The constraint solves the original safety failure, but it does **not** beat the 
 | Mask-only U-Net, constrained | 0.0388 | 0.1481 | 0.45% | 0.07% |
 | RGB + mask U-Net, constrained | 0.0386 | 0.1392 | 1.48% | 0.08% |
 
-Across seeds 17, 23, and 41, constrained RGB boundary MAE was **0.1431 ± 0.0034** (sample standard deviation). The evidence supports the constraint as an application safety invariant, not as a guaranteed accuracy improvement.
+Across seeds 17, 23, and 41, constrained RGB boundary MAE was **0.1431 ± 0.0034** (sample standard deviation). The evidence supports the constraint as an inference safety property, not as a guaranteed accuracy improvement.
 
-## What changed
+## Boundary-constrained inference
 
-The original model emitted an alpha value for every pixel. It achieved strong synthetic boundary MAE but changed 99.9% of already-correct interior pixels. The application path now computes an editable band from the rough mask alone:
+An unconstrained refiner emits an alpha value for every pixel. In the initial experiment it achieved strong synthetic boundary MAE but changed 99.9% of already-correct interior pixels. The constrained inference path computes an editable band from the rough mask alone:
 
 ```text
 editable = dilate(rough) - erode(rough)
@@ -77,7 +79,7 @@ The ground-truth boundary used for evaluation remains separate from this inferen
 
 ### Practical pretrained-mask condition
 
-The official MODNet photographic checkpoint was thresholded to produce one rough mask for each PPM image. In this **64×64 pilot** (3 px evaluation band, 2 px trained editable band), on 81 test images, the MODNet rough masks scored 0.0606 boundary MAE and Gaussian feathering improved this to **0.0496**. Every CNN variant made these already-strong masks worse. This condition is reported separately from the 256×256 controlled corruptions; the numbers are not directly comparable across resolutions. **Gaussian feathering won both historical photographic benchmark conditions.** All CNNs in these historical tables trained on procedural data; PPM-100 supplied photographic evaluation images only. The follow-up above reports photographic training separately.
+The official MODNet photographic checkpoint was thresholded to produce one rough mask for each PPM image. In this **64×64 pilot** (3 px evaluation band, 2 px trained editable band), on 81 test images, the MODNet rough masks scored 0.0606 boundary MAE and Gaussian feathering improved this to **0.0496**. Every CNN variant made these already-strong masks worse. This condition is reported separately from the 256×256 controlled corruptions; the numbers are not directly comparable across resolutions. **Gaussian feathering won both historical photographic benchmark conditions.** All CNNs in these historical tables trained on procedural data; PPM-100 supplied photographic evaluation images only. The photographic-training study above reports learned models trained with photographic foregrounds separately.
 
 ### Latency
 
@@ -123,7 +125,7 @@ pmr train --input-mode both --resolution 64 --fixture-identities 36 \
   --samples-per-identity 3 --epochs 6 --batch-size 8 --base-channels 8 \
   --boundary-width 3 --seed 17 --device mps --output-dir outputs/reproduce/train
 
-# Train the application model at 256x256.
+# Train the 256x256 refinement model.
 pmr train --input-mode rgb-mask --resolution 256 --fixture-identities 36 \
   --samples-per-identity 3 --epochs 6 --batch-size 4 --base-channels 8 \
   --boundary-width 12 --seed 17 --train-seed 17 --device auto \
