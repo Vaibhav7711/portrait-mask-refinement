@@ -12,7 +12,34 @@ Procedural fixture (not a photograph): RGB input and supplied rough mask; rough-
 
 Identical 96×96 hair/shoulder crops enlarged 2×: input, rough-mask edit, Gaussian feathering, and constrained RGB U-Net. Top: median fixture condition; bottom: largest constrained-CNN boundary regression versus feathering. Both use +0.75 stops; this is a procedural illustration, not photographic evidence.
 
-## Main result
+## Photographic-training study
+
+**Switching to photographic foregrounds alone did not reliably help on real MODNet masks, and it did not beat feathering.** Using MODNet masks during photographic training helped the one-seed mask-matched variant substantially, but feathering still won.
+
+PhotoMatte85 supplied **65 training / 20 validation foreground images**, composited over shared procedural backgrounds. The matched arms used the same constrained U-Net, 256×256 resolution, loss, band, six epochs / **294 updates**, and seeds **17, 23, 41**. Both selected checkpoints on the same photographic validation set. This isolates the foreground-data change; it is not a large-data or natural-background training claim.
+
+Main evaluation: **81 frozen PPM-100 test foregrounds ×1 binary MODNet mask**, at 256×256. The separate 19-image PPM validation split selected Gaussian radius 0.5. Lower is better:
+
+| Method | Full MAE | Boundary MAE | Correct FG damaged | Correct BG damaged |
+|---|---:|---:|---:|---:|
+| Raw MODNet (binary) | 0.01063 | 0.03535 | 0.00% | 0.00% |
+| Gaussian feather | **0.00960** | **0.03152** | 0.09% | 0.03% |
+| Existing procedural checkpoint | 0.02872 | 0.10307 | 0.43% | 0.13% |
+| Matched procedural training, 3-seed mean | 0.03191 | 0.11582 | 0.37% | 0.12% |
+| Photographic + controlled masks, 3-seed mean | 0.03155 | 0.11580 | 0.44% | 0.11% |
+| Photographic + MODNet masks, seed 17 only | 0.01284 | 0.04592 | 0.28% | 0.10% |
+
+Photographic minus procedural boundary MAE: **−0.000017**, foreground-bootstrap 95% CI **[−0.00527, +0.00507]**; 44/81 foregrounds improved, without a reliable average benefit. Photographic minus feathering: **+0.08429**, CI **[+0.07572, +0.09263]**; 0/81 improved. Matching MODNet errors reduced seed-17 photographic boundary MAE from 0.12406 to 0.04592, but remained worse than feathering by +0.01440 (CI [+0.00916, +0.02007]). This optional result has **one seed**, not three.
+
+![Per-foreground paired boundary-error differences on frozen MODNet masks](docs/assets/photographic-paired-differences.png)
+
+Each bar is one test foreground; negative means better. The CNN trained on controlled erosions/dilations over-corrects already-strong MODNet boundaries. The constraint prevents edits outside the band, not damage inside it. The mask-matched result supports error-distribution mismatch as an important limitation in this pilot. Studio portraits, synthetic backgrounds, a small training set, and unverified subject identities limit generalization.
+
+See the [complete photographic study and commands](docs/PHOTOGRAPHIC_STUDY.md), [frozen manifests, paired results, and run histories](reports/photographic-study/), and [source-overlap audit](reports/photographic-study/data-audit.json). No PPM image trained a CNN; no source duplicates were found by the documented checks, but person-disjointness is unproven. Portrait images, local improvement/failure crops, datasets, and third-party/new model weights are not committed.
+
+**Secondary evaluation, controlled corruptions:** on the same 81 foregrounds ×3 corruptions (**243 conditions**), photographic training improved boundary MAE from **0.14203 to 0.13378** (three-seed means; paired difference −0.00825, 95% CI [−0.01309, −0.00353]). Feathering scored 0.13680: the photographic CNN had a lower point estimate, but its difference versus feathering, −0.00302 [−0.01020, +0.00396], was inconclusive. Thus photographic training helped under controlled corruption, but not reliably on the main real-MODNet-mask condition. Across-seed SDs and all secondary metrics are in the complete study.
+
+## Controlled-corruption benchmark
 
 The constraint solves the original safety failure, but it does **not** beat the simplest baseline on the main photographic benchmark. On 81 held-out PPM-100 foregrounds × 3 controlled corruptions (243 conditions, 256×256), the best seed reduced damage to already-correct foreground/background pixels from **81.1% / 99.99%** for the unconstrained CNN to **1.48% / 0.08%**. Its boundary MAE was 0.1392; validation-tuned Gaussian feathering won at 0.1368.
 
@@ -46,13 +73,13 @@ The ground-truth boundary used for evaluation remains separate from this inferen
 - Contents: 100 natural photographic portraits with alpha mattes; subject identity metadata is unavailable.
 - Frozen filename-hash split: 19 validation foregrounds and 81 test foregrounds.
 - Test conditions: three deterministic corruptions per test foreground, 243 total.
-- Models train only on the procedural fixture; PPM validation selects feather radius and editable width.
+- The models in this historical table train only on the procedural fixture; PPM validation selects feather radius and editable width.
 - Evaluation band: 12 px around the ground-truth contour. Editable band: 4 px around the supplied rough mask.
 - Uncertainty: 95% bootstrap intervals aggregate repeated conditions at foreground level; per-condition measurements and paired differences are exported to CSV.
 
 ### Practical pretrained-mask condition
 
-The official MODNet photographic checkpoint was thresholded to produce one rough mask for each PPM image. In this **64×64 pilot** (3 px evaluation band, 2 px trained editable band), on 81 test images, the MODNet rough masks scored 0.0606 boundary MAE and Gaussian feathering improved this to **0.0496**. Every CNN variant made these already-strong masks worse. This condition is reported separately from the 256×256 controlled corruptions; the numbers are not directly comparable across resolutions. **Gaussian feathering won both reported photographic benchmark conditions.** All CNNs in this report trained on procedural data; PPM-100 supplied photographic evaluation images only.
+The official MODNet photographic checkpoint was thresholded to produce one rough mask for each PPM image. In this **64×64 pilot** (3 px evaluation band, 2 px trained editable band), on 81 test images, the MODNet rough masks scored 0.0606 boundary MAE and Gaussian feathering improved this to **0.0496**. Every CNN variant made these already-strong masks worse. This condition is reported separately from the 256×256 controlled corruptions; the numbers are not directly comparable across resolutions. **Gaussian feathering won both historical photographic benchmark conditions.** All CNNs in these historical tables trained on procedural data; PPM-100 supplied photographic evaluation images only. The photographic-training study above reports learned models trained with photographic foregrounds separately.
 
 ### Latency
 

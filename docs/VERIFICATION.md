@@ -1,10 +1,10 @@
 # Reproducibility verification
 
-Verified 2026-11-21 from a clean detached checkout of `925c381`, with a new virtual environment and the exact installation/demo commands in the README. No downloaded datasets or ignored training checkpoints were available in that checkout.
+Verified 2026-11-21 from clean detached checkouts, using a new virtual environment and the exact installation/demo commands in the README. No downloaded datasets or ignored training checkpoints were available in those checkouts.
 
 - Python 3.12.1 on Apple M1.
 - Fresh dependency resolution: torch 2.15.0, NumPy 2.5.5, Pillow 13.0.0, pytest 9.2.0. Historical benchmark measurements used torch 2.10.0; no assertion of identical metrics across library versions.
-- `pytest -q`: **8 passed**.
+- Baseline checkout: `pytest -q` reported **8 passed**; the complete photographic-study checkout reported **16 passed**.
 - `python -m compileall -q portrait_mask_refinement`: passed.
 - Documented `pmr infer` command: passed with the committed procedural checkpoint.
 - Input and output: **96×96**. Scaled editable half-width: **2 px**. Compared all **8,144 outside-band pixels**: **zero changed bytes** after converting the supplied mask to its documented grayscale representation.

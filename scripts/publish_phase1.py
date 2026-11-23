@@ -26,7 +26,8 @@ def main():
             shutil.copyfile(Path(source) / name, destination / f"{label}-{name}")
     shutil.copyfile("outputs/256/seed-stability.json", destination / "seed-stability.json")
     data = PortraitCompositeDataset("test", DataConfig(resolution=256, fixture_identities=36))
-    rows = list(csv.DictReader(open("outputs/256/eval-fixture/per-image.csv")))
+    with open("outputs/256/eval-fixture/per-image.csv") as handle:
+        rows = list(csv.DictReader(handle))
     values = {(r["identity"], r["version"], r["method"]): float(r["boundary_mae"]) for r in rows}
     ranked = sorted(range(len(data)), key=lambda i: values[(data[i]["identity"], data[i]["version"], "rgb_constrained")] - values[(data[i]["identity"], data[i]["version"], "feathered")])
     indices = [ranked[len(ranked) // 2], ranked[-1]]
