@@ -1,8 +1,10 @@
 # Portrait Mask Refinement
 
-Boundary-constrained portrait alpha refinement for the Aftershoot ML internship: a small CNN may edit hair and shoulder boundaries, but the supplied rough mask is copied **exactly** everywhere outside an erosion–dilation band.
+Boundary-constrained alpha-matte refinement for portrait editing. Given an RGB portrait and a rough foreground mask, a compact U-Net predicts hair and shoulder corrections while a hard constraint copies the supplied mask **exactly** everywhere outside an erosion–dilation band.
 
-![Application demo: RGB, rough mask, equal exposure edits, and constrained alpha](docs/assets/application-comparison.png)
+The repository includes a runnable inference CLI, deterministic training pipelines, frozen evaluation splits, per-image measurements, and controlled comparisons with raw masks and Gaussian feathering. Its emphasis is reproducible model behavior rather than a showcase-only result.
+
+![Inference comparison: RGB, rough mask, equal exposure edits, and constrained alpha](docs/assets/application-comparison.png)
 
 Procedural fixture (not a photograph): RGB input and supplied rough mask; rough-mask, Gaussian-feathered, and constrained RGB U-Net exposure edits, all at +0.75 stops. The CNN checkpoint was trained only on procedural images.
 
@@ -23,11 +25,11 @@ The constraint solves the original safety failure, but it does **not** beat the 
 | Mask-only U-Net, constrained | 0.0388 | 0.1481 | 0.45% | 0.07% |
 | RGB + mask U-Net, constrained | 0.0386 | 0.1392 | 1.48% | 0.08% |
 
-Across seeds 17, 23, and 41, constrained RGB boundary MAE was **0.1431 ± 0.0034** (sample standard deviation). The evidence supports the constraint as an application safety invariant, not as a guaranteed accuracy improvement.
+Across seeds 17, 23, and 41, constrained RGB boundary MAE was **0.1431 ± 0.0034** (sample standard deviation). The evidence supports the constraint as an inference safety property, not as a guaranteed accuracy improvement.
 
-## What changed
+## Boundary-constrained inference
 
-The original model emitted an alpha value for every pixel. It achieved strong synthetic boundary MAE but changed 99.9% of already-correct interior pixels. The application path now computes an editable band from the rough mask alone:
+An unconstrained refiner emits an alpha value for every pixel. In the initial experiment it achieved strong synthetic boundary MAE but changed 99.9% of already-correct interior pixels. The constrained inference path computes an editable band from the rough mask alone:
 
 ```text
 editable = dilate(rough) - erode(rough)
@@ -96,7 +98,7 @@ pmr train --input-mode both --resolution 64 --fixture-identities 36 \
   --samples-per-identity 3 --epochs 6 --batch-size 8 --base-channels 8 \
   --boundary-width 3 --seed 17 --device mps --output-dir outputs/reproduce/train
 
-# Train the application model at 256x256.
+# Train the 256x256 refinement model.
 pmr train --input-mode rgb-mask --resolution 256 --fixture-identities 36 \
   --samples-per-identity 3 --epochs 6 --batch-size 4 --base-channels 8 \
   --boundary-width 12 --seed 17 --train-seed 17 --device auto \

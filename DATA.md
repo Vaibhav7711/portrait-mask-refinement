@@ -12,6 +12,6 @@ Put subject cutouts in an untracked directory and pass it with `--portraits-dir`
 
 Only use assets whose license permits the intended experiment. Record the dataset name, source URL, version, download date, license, and any redistribution limits in your private experiment notes. Do not commit downloaded assets unless their terms explicitly allow redistribution. Candidate public research datasets include Adobe Deep Image Matting and P3M-10k, but their current terms must be reviewed at download time; this repository does not bundle or endorse a copy.
 
-The application benchmark now uses PPM-100 locally. See [docs/DATASETS.md](docs/DATASETS.md) for verified official links, terms, exact setup, the frozen split, and the separate MODNet condition.
+The photographic benchmark uses PPM-100 locally. See [docs/DATASETS.md](docs/DATASETS.md) for verified official links, terms, exact setup, the frozen split, and the separate MODNet condition.
 
 Splitting happens from the portrait filename stem before background compositing, rough-mask perturbation, or repetition. Every derived version therefore remains in exactly one split.
