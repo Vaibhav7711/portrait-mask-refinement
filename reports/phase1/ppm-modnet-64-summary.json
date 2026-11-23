@@ -1,0 +1,137 @@
+{
+  "protocol": {
+    "validation_foregrounds": 19,
+    "test_foregrounds": 81,
+    "test_composites_or_conditions": 81,
+    "gt_boundary_width": 3,
+    "selected_editable_width": 1,
+    "selected_feather_radius": 0.5
+  },
+  "editable_width_validation": {
+    "1": {
+      "boundary_mae": 0.13428480844748647,
+      "rough_error_coverage": 0.8447384081388775
+    },
+    "2": {
+      "boundary_mae": 0.23105020977948842,
+      "rough_error_coverage": 0.9425802638656214
+    },
+    "3": {
+      "boundary_mae": 0.3196501347579454,
+      "rough_error_coverage": 0.9723618908932334
+    },
+    "5": {
+      "boundary_mae": 0.32736720850593165,
+      "rough_error_coverage": 0.9824021709592718
+    },
+    "8": {
+      "boundary_mae": 0.32864092055119964,
+      "rough_error_coverage": 0.9865312733148274
+    }
+  },
+  "feather_validation": {
+    "0.5": 0.057716212382442074,
+    "1.0": 0.07982457625238519,
+    "2.0": 0.1638932777078528,
+    "3.0": 0.22752002822725395,
+    "5.0": 0.29837786916055176
+  },
+  "summary": {
+    "rough": {
+      "full_mae": 0.016773660264817285,
+      "boundary_mae": 0.060628697000167986,
+      "fg_interior_mae": 0.00193687474469653,
+      "bg_exterior_mae": 0.0010309636659679166,
+      "correct_fg_mae": 5.780351697759204e-05,
+      "correct_bg_mae": 7.300014269899461e-05,
+      "correct_fg_damage_rate": 0.0,
+      "correct_bg_damage_rate": 0.0,
+      "correct_pixel_change_rate": 0.0,
+      "boundary_mae_identity_bootstrap_95ci": [
+        0.057134755334046515,
+        0.06427670490847508
+      ],
+      "paired_boundary_delta_vs_rough": 0.0
+    },
+    "feathered": {
+      "full_mae": 0.013959098986729427,
+      "boundary_mae": 0.04963639939640775,
+      "fg_interior_mae": 0.0019494116216455838,
+      "bg_exterior_mae": 0.0010352805406180351,
+      "correct_fg_mae": 0.00030111264922994945,
+      "correct_bg_mae": 0.0001590054689502183,
+      "correct_fg_damage_rate": 0.0027707591250446845,
+      "correct_bg_damage_rate": 0.0010235511272409816,
+      "correct_pixel_change_rate": 0.0015015475912577255,
+      "boundary_mae_identity_bootstrap_95ci": [
+        0.046673576964962264,
+        0.05258899654296261
+      ],
+      "paired_boundary_delta_vs_rough": -0.010992297603760236
+    },
+    "rgb_unconstrained": {
+      "full_mae": 0.3956591376551875,
+      "boundary_mae": 0.366320377882616,
+      "fg_interior_mae": 0.4036279708882909,
+      "bg_exterior_mae": 0.39368152029720355,
+      "correct_fg_mae": 0.40346400862858617,
+      "correct_bg_mae": 0.39373576641082764,
+      "correct_fg_damage_rate": 0.9610831906766067,
+      "correct_bg_damage_rate": 0.9999918459374227,
+      "correct_pixel_change_rate": 0.9966981050408916,
+      "boundary_mae_identity_bootstrap_95ci": [
+        0.3448420591928341,
+        0.3885933370455915
+      ],
+      "paired_boundary_delta_vs_rough": 0.305691680882448
+    },
+    "rgb_posthoc": {
+      "full_mae": 0.03714884538203478,
+      "boundary_mae": 0.1397013736911762,
+      "fg_interior_mae": 0.002577433969769499,
+      "bg_exterior_mae": 0.0012452071094842577,
+      "correct_fg_mae": 0.00143679179299633,
+      "correct_bg_mae": 0.000595648471794953,
+      "correct_fg_damage_rate": 0.002703953494122367,
+      "correct_bg_damage_rate": 0.001061662032705858,
+      "correct_pixel_change_rate": 0.0014466522423188305,
+      "boundary_mae_identity_bootstrap_95ci": [
+        0.13269421355683864,
+        0.1465881231413395
+      ],
+      "paired_boundary_delta_vs_rough": 0.0790726766910082
+    },
+    "mask_constrained": {
+      "full_mae": 0.07017156817478898,
+      "boundary_mae": 0.27051902700353553,
+      "fg_interior_mae": 0.0023417217758148505,
+      "bg_exterior_mae": 0.0020678737193357837,
+      "correct_fg_mae": 0.0016783678608679807,
+      "correct_bg_mae": 0.0014453665971112418,
+      "correct_fg_damage_rate": 0.005551895126700401,
+      "correct_bg_damage_rate": 0.0028804013064349598,
+      "correct_pixel_change_rate": 0.003429779329087102,
+      "boundary_mae_identity_bootstrap_95ci": [
+        0.2628899631354912,
+        0.277856884740385
+      ],
+      "paired_boundary_delta_vs_rough": 0.20989033000336754
+    },
+    "rgb_constrained": {
+      "full_mae": 0.06816110249470782,
+      "boundary_mae": 0.2580167351313579,
+      "fg_interior_mae": 0.004635033748108083,
+      "bg_exterior_mae": 0.0018047696632442643,
+      "correct_fg_mae": 0.0035577297029097585,
+      "correct_bg_mae": 0.0012798379753595878,
+      "correct_fg_damage_rate": 0.00651084668043265,
+      "correct_bg_damage_rate": 0.0028804013064349598,
+      "correct_pixel_change_rate": 0.003549303417165913,
+      "boundary_mae_identity_bootstrap_95ci": [
+        0.2433952905467631,
+        0.274306706789835
+      ],
+      "paired_boundary_delta_vs_rough": 0.19738803813118994
+    }
+  }
+}

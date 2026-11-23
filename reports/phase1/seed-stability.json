@@ -1,0 +1,32 @@
+{
+  "17": {
+    "full_mae": 0.03858442614506547,
+    "boundary_mae": 0.13921583855501662,
+    "correct_fg_damage_rate": 0.014824712056670923,
+    "correct_bg_damage_rate": 0.0008166189109407717
+  },
+  "23": {
+    "full_mae": 0.040426444699182926,
+    "boundary_mae": 0.14541437449278655,
+    "correct_fg_damage_rate": 0.014979684830141645,
+    "correct_bg_damage_rate": 0.0007485511168365539
+  },
+  "41": {
+    "full_mae": 0.040003178284767966,
+    "boundary_mae": 0.14468454935975036,
+    "correct_fg_damage_rate": 0.016099028374413852,
+    "correct_bg_damage_rate": 0.0006638130056177752
+  },
+  "mean": {
+    "full_mae": 0.03967134970967212,
+    "boundary_mae": 0.14310492080251783,
+    "correct_fg_damage_rate": 0.01530114175374214,
+    "correct_bg_damage_rate": 0.0007429943444650335
+  },
+  "sample_std": {
+    "full_mae": 0.0009648008814599224,
+    "boundary_mae": 0.003387754673389837,
+    "correct_fg_damage_rate": 0.0006953211018763167,
+    "correct_bg_damage_rate": 7.655435627570001e-05
+  }
+}

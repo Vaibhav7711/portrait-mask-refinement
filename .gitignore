@@ -5,6 +5,8 @@ cache/
 outputs/
 checkpoints/
 *.pt
+!demo/checkpoints/
+!demo/checkpoints/*.pt
 *.pth
 *.ckpt
 

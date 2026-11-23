@@ -4,9 +4,12 @@ import argparse
 import json
 from pathlib import Path
 
+from .benchmark import benchmark_checkpoint
 from .data import DataConfig, PortraitCompositeDataset
 from .evaluate import comparison_grid, evaluate_models, feather
+from .evaluation_v2 import evaluate_boundary_constrained
 from .infer import run_inference
+from .photographic import PhotographicMatteDataset
 from .train import TrainConfig, train_model
 from .utils import write_json
 
@@ -52,6 +55,9 @@ def main() -> None:
     train.add_argument("--boundary-width", type=int, default=5)
     train.add_argument("--boundary-weight", type=float, default=4.0)
     train.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
+    train.add_argument("--train-seed", type=int, help="Initialization/shuffle seed; defaults to --seed")
+    train.add_argument("--constrained", action="store_true", help="Train through the rough-mask editable-band constraint")
+    train.add_argument("--editable-width", type=int, default=5, help="Editable band half-width in model pixels")
     train.add_argument("--output-dir", default="outputs/train")
 
     evaluate = sub.add_parser("evaluate", help="Run the four-way held-out comparison")
@@ -62,6 +68,20 @@ def main() -> None:
     evaluate.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
     evaluate.add_argument("--output-dir", default="outputs/eval")
 
+    constrained_eval = sub.add_parser("evaluate-constrained", help="Diagnose and compare constrained refiners")
+    add_data_args(constrained_eval)
+    constrained_eval.add_argument("--dataset", choices=["fixture", "photographic"], default="fixture")
+    constrained_eval.add_argument("--images-dir")
+    constrained_eval.add_argument("--mattes-dir")
+    constrained_eval.add_argument("--roughs-dir", help="Optional pretrained-segmenter masks for a separate condition")
+    constrained_eval.add_argument("--original-rgb-checkpoint", required=True)
+    constrained_eval.add_argument("--constrained-mask-checkpoint", required=True)
+    constrained_eval.add_argument("--constrained-rgb-checkpoint", required=True)
+    constrained_eval.add_argument("--boundary-width", type=int, default=5)
+    constrained_eval.add_argument("--candidate-widths", type=int, nargs="+", default=[1, 2, 3, 5, 8])
+    constrained_eval.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
+    constrained_eval.add_argument("--output-dir", default="outputs/constrained-eval")
+
     infer = sub.add_parser("infer", help="Refine one RGB photo and rough mask")
     infer.add_argument("--checkpoint", required=True)
     infer.add_argument("--image", required=True)
@@ -69,6 +89,17 @@ def main() -> None:
     infer.add_argument("--alpha-output", default="outputs/inference/refined-alpha.png")
     infer.add_argument("--comparison-output", default="outputs/inference/comparison.png")
     infer.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
+    infer.add_argument("--editable-width", type=int, help="Override/enable editable-band constraint")
+
+    benchmark = sub.add_parser("benchmark", help="Benchmark end-to-end inference latency after warmup")
+    benchmark.add_argument("--checkpoint", required=True)
+    benchmark.add_argument("--image", required=True)
+    benchmark.add_argument("--mask", required=True)
+    benchmark.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
+    benchmark.add_argument("--editable-width", type=int)
+    benchmark.add_argument("--warmup", type=int, default=10)
+    benchmark.add_argument("--runs", type=int, default=50)
+    benchmark.add_argument("--output", default="outputs/benchmark.json")
 
     args = parser.parse_args()
     if args.command == "prepare":
@@ -104,8 +135,10 @@ def main() -> None:
             base_channels=args.base_channels,
             boundary_width=args.boundary_width,
             boundary_weight=args.boundary_weight,
-            seed=args.seed,
+            seed=args.train_seed if args.train_seed is not None else args.seed,
             device=args.device,
+            constrained=args.constrained,
+            editable_width=args.editable_width,
         )
         modes = ["mask", "rgb-mask"] if args.input_mode == "both" else [args.input_mode]
         for mode in modes:
@@ -113,9 +146,35 @@ def main() -> None:
     elif args.command == "evaluate":
         result = evaluate_models(args.mask_checkpoint, args.rgb_checkpoint, _data_config(args), args.output_dir, args.device, args.boundary_width)
         print(json.dumps(result, indent=2))
+    elif args.command == "evaluate-constrained":
+        if args.dataset == "photographic":
+            if not args.images_dir or not args.mattes_dir:
+                parser.error("photographic evaluation requires --images-dir and --mattes-dir")
+            val_dataset = PhotographicMatteDataset(args.images_dir, args.mattes_dir, "val", args.resolution, args.seed, args.samples_per_identity, args.roughs_dir)
+            test_dataset = PhotographicMatteDataset(args.images_dir, args.mattes_dir, "test", args.resolution, args.seed, args.samples_per_identity, args.roughs_dir)
+        else:
+            config = _data_config(args)
+            val_dataset = PortraitCompositeDataset("val", config)
+            test_dataset = PortraitCompositeDataset("test", config)
+        result = evaluate_boundary_constrained(
+            val_dataset,
+            test_dataset,
+            args.original_rgb_checkpoint,
+            args.constrained_mask_checkpoint,
+            args.constrained_rgb_checkpoint,
+            args.output_dir,
+            args.device,
+            args.boundary_width,
+            args.candidate_widths,
+        )
+        print(json.dumps(result, indent=2))
     elif args.command == "infer":
-        run_inference(args.checkpoint, args.image, args.mask, args.alpha_output, args.comparison_output, args.device)
-        print(args.alpha_output)
+        result = run_inference(args.checkpoint, args.image, args.mask, args.alpha_output, args.comparison_output, args.device, args.editable_width)
+        print(json.dumps(result, indent=2))
+    elif args.command == "benchmark":
+        result = benchmark_checkpoint(args.checkpoint, args.image, args.mask, args.device, args.warmup, args.runs, args.editable_width)
+        write_json(args.output, result)
+        print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":
